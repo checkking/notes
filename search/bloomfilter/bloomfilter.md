@@ -3,6 +3,8 @@
 假设要查找一个用户ID是否已经注册过, 或者其他的查询是否存在的需求，用位图空间换时间的方式一种常见的方案。
 将要查找的内容转成一个整数n，通过查找bitmap的第n位是否为1排判断是否存在。
 
+![bitmap](https://github.com/checkking/notes/blob/master/imgs/bitmap.png)
+
 假设用char数组来实现bitmap, 一个char占8个bit, 判断n是否在bitmap中，可以先找到在数据的第几个位置和具体的第几个位。具体实现见golang代码.
 
 
