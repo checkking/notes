@@ -45,7 +45,7 @@
 我们可以通过将有序链表改成跳表，这样，在posting list A中，我们从第2个元素遍历到第500个元素，只需要 log(498) 次的量级，会比链表快得多。
 
 
-![post2](https://github.com/checkking/notes/blob/master/imgs/post2.png)
+![post2](https://github.com/checkking/notes/blob/master/imgs/pos2.png)
 
 其实可以相互二分查找的，posting list A中，拿500在posting list B中二分查找，posting list B中，拿1000在posting list A中二分查找. 在实际的系统中，如果posting list可以都存储在内存中，并且变化不频繁的话，可以用*可变数组*来代替链表。 这样，对于两个posting list求交集，我们同样可以使用相互二分查找，进行归并，并且可以利用CPU的局部性提高性能。
 
