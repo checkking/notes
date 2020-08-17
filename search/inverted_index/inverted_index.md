@@ -130,3 +130,16 @@ key1、key2 和 key3 分别的查询结果是 A、B、C 三个集合。如果我
 将大任务分解为多个小任务，最终根据 key 来归并的思路，其实和分布式计算 Map Reduce 的思路是十分相似的。因此，这种将大规模文档拆分成多个小规模文档集合，再生成倒排文件的方案，可以非常方便地迁移到 Map Reduce 的框架上，在多台机器上同时运行，大幅度提升倒排文件的生成效率。
 
 ##### 倒排文件的检索
+一个倒排索引由两部分构成，一部分是key集合的词典，另一部分是key对应的文档列表(posting list). 词典这一部分数据量不会很大，可以在内存中加载。所以我们完全可以将倒排文件中的所有key读出，在内存中使用哈希表建立词典.
+
+![index-store1](https://github.com/checkking/notes/blob/master/imgs/index_store1.png)
+
+在查询时，通过检索内存中的哈希表，我们就能找到对应的key, 然后将磁盘中key对应的posting list读到内存中进行处理.
+
+如果词典本身很大，可以用B+树来完成词典检索. 首先，使用B+树的技术，查询到对应的词典中的关键字。然后，将关键字对应的posting list读到内存处理。
+
+![index-store2](https://github.com/checkking/notes/blob/master/imgs/index_store2.png)
+
+但是，如果posting list非常长，不能够加载到内存，我们可以对长度过大的posting list也进行类似B+树的索引，只读取有用的数据块到内存中，从而降低磁盘的访问次数。 包括在 Lucene 中，也是使用类似的思想，用分层跳表来实现 posting list，从而能将 posting list 分层加载到内存中。而对于长度不大的 posting list，我们仍然可以直接加载到内存中。
+
+如果内存空间足够大，我们还能使用缓存技术，比如 LRU 缓存，它会将频繁使用的 posting list 长期保存在内存中。
