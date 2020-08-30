@@ -70,4 +70,11 @@ grant_type=authorization_code&code=SplxlOBeZQQYbYS6WxSbIA
 * 访问令牌(token) 要求有极高的安全保密性, 不能暴露在浏览器上，需要通过后端服务来获取，以最大限度保证访问令牌的安全性。
 * 通过授权码的方式，在保证安全的前提下，能够在给用户授权之后，跳回用户的操作页面，提升了用户体验.
 
+### 微服务安全架构
 
+![oauth2-arch](https://github.com/checkking/notes/blob/master/imgs/arch_oauth2.png)
+
+1. 客户应用先去授权服务器拿到access token (授权服务器颁发access token，并做jwt映射，缓存在redis中)
+2. 客户端携带access token访问网关，网关拿access token去授权服务器校验并换取jwt token(优化：直接读取redis)
+3. 网关将请求携带jwt token路由到下游各微服务.
+4. 由于jwt的自解释性，下游各模块能校验请求。
