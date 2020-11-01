@@ -47,4 +47,38 @@
 客户端模式，适合服务之间调用的授权，没有前端参与。比如A应用通过client_id和client_secret向B应用获取资源的方式。
 ![oauth2_img_4.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img_4.png)
 
+### 刷新令牌
 
+在授权码模式中，如果access token过期了，需要重新授权获取access token, 这就需要用户再次手动授权，用户体验不好。这里引入刷新令牌，来避免用户反复手动授权。
+
+refresh token是和access token一起颁发给第三方应用的，当第三方应用发现access token过期了，便用refresh token请求授权服务器获取access token和新的refresh token，第三方应用保存新的refresh token。
+
+### JWT (JSON Web Token)
+
+OAuth2.0并没有约束access token的生成规则，只要符合唯一性，不连续性和不可猜测性就可以。 授权服务器颁发给第三方应用的access token, 第三方应用根据access token从资源服务器获取数据，资源服务器是需要校验access token的合法性的，而校验就是需要通过rpc 调用授权服务器。在现在微服务这种架构下，所有受保护的模块都需要请求授权服务器，这种方式对授权服务器的压力就太大了。而JWT这种令牌具有自解释性，自身包含了从授权服务器获取的一些信息。
+
+#### JWT的格式
+
+JWT结构化体包含HEADER, PAYLOAD和SIGNATURE三部分，HEADER表示JWT头部，一般包含类型和加密算法信息。PAYLOAD表示JWT的数据体，用来承载一些token信息数据。SIGNATURE 表示JWT的信息签名，避免jwt token在网络传输过程中被人篡改和数据信息泄露。生成jwt的过程还需要做Base64处理，以避免乱码问题。下面是一个jwt token的例子:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlhpYW9taW5nIiwiaWF0IjoxNTE2MjM5MDIyfQ.q25mDFCAlWlqR3YMJr2Jds3ntBTyGItdvijiEtuJJ2E
+```
+
+我们可以到jwt.io上去解码查看具体的内容如下:
+
+![oauth2_img_5.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img_5.png)
+
+#### JWT的不足
+
+jwt的有点很明显，就是jwt token的自解释性，将token校验放到了各个资源业务模块，减少了对授权服务器的压力。但是如果想吊销一个有问题的token, 就比较难了，因为jwt token由授权服务器颁发之后，就不由授权服务器控制了。
+
+为了解决吊销的问题，授权服务器还是需要能够控制token，我们可以做一个优化，颁发token的时候记录，返回普通的access token， 然后在客户端应用通过网关调用资源服务器的时候，用access token换取jwt token，在内网中利用jwt token调接口读取数据。
+
+### 微服务安全架构
+
+![oauth2_img_6.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img_6.png)
+
+1. 客户应用先去授权服务器拿到access token (授权服务器颁发access token，并做jwt映射，缓存在redis中)
+2. 客户端携带access token访问网关，网关拿access token去授权服务器校验并换取jwt token(优化：直接读取redis)
+3. 网关将请求携带jwt token路由到下游各微服务.
+4. 由于jwt的自解释性，下游各模块能校验请求。
