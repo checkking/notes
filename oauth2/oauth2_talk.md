@@ -66,7 +66,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlhpYW9
 
 我们可以到jwt.io上去解码查看具体的内容如下:
 
-![oauth2_img_5.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img_5.png)
+![oauth2_img_5.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img5.png)
 
 #### JWT的不足
 
@@ -76,9 +76,13 @@ jwt的有点很明显，就是jwt token的自解释性，将token校验放到了
 
 ### 微服务安全架构
 
-![oauth2_img_6.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img_6.png)
+![oauth2_img_6.png](https://github.com/checkking/notes/blob/master/imgs/oauth2_img6.png)
 
 1. 客户应用先去授权服务器拿到access token (授权服务器颁发access token，并做jwt映射，缓存在redis中)
 2. 客户端携带access token访问网关，网关拿access token去授权服务器校验并换取jwt token(优化：直接读取redis)
 3. 网关将请求携带jwt token路由到下游各微服务.
 4. 由于jwt的自解释性，下游各模块能校验请求。
+
+### 一个Demo
+
+实现了一个很简单的demo, 包含最基本的oauth2流程。github地址: https://github.com/checkking/oauth2_practice
